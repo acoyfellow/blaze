@@ -1,15 +1,17 @@
 # blaze
 A simple realtime database for Cloudflare Workers.
 
+![Blaze Diagram](https://raw.githubusercontent.com/acoyfellow/blaze/refs/heads/main/public/diagram.png)
+
 Roadmap:
-[x] POC backend + frontend lib (state)
-[x] Add example
-[x] Open souce it
-[ ] Auth
-[ ] Explore other DO features (D1, KV, Storage, Queues)
-[ ] Add docs
-[ ] Make a hosted version
-[ ] Add tests
+  - [x] POC backend + frontend lib (state)
+  - [x] Add example
+  - [x] Open souce it
+  - [ ] Auth
+  - [ ] Explore other DO features (D1, KV, Storage, Queues)
+  - [ ] Add docs
+  - [ ] Make a hosted version
+  - [ ] Add tests
 
 # Overview
 
@@ -28,46 +30,6 @@ We're building a real-time, Firestore-like document store using Cloudflare Durab
 
 - **Fun Experiment:**  
   This is an exploration of Cloudflare’s capabilities and a chance to build something unique.
-
-```
-+-------------------+       +-------------------+       +-------------------+
-|                   |       |                   |       |                   |
-|    Client App     |       |  Cloudflare Worker|       |  Durable Object   |
-|  (Svelte Frontend)|       |  (server.ts)      |       |  (BlazeDocument)  |
-|                   |       |                   |       |                   |
-+--------+----------+       +--------+----------+       +--------+----------+
-         |                          |                          |
-         | 1. HTTP GET /docs/:id    |                          |
-         +------------------------->+                          |
-         |                          | 2. Route to DO           |
-         |                          +------------------------->+
-         |                          |                          |
-         | 3. Return JSON data      |                          |
-         +<-------------------------+                          |
-         |                          |                          |
-         | 4. WebSocket /ws         |                          |
-         +------------------------->+                          |
-         |                          | 5. Route to DO           |
-         |                          +------------------------->+
-         |                          |                          |
-         | 6. Real-time updates     |                          |
-         +<-------------------------+                          |
-         |                          |                          |
-         | 7. WebSocket UPDATE      |                          |
-         +------------------------->+                          |
-         |                          | 8. Route to DO           |
-         |                          +------------------------->+
-         |                          |                          |
-         | 9. Broadcast updates     |                          |
-         +<-------------------------+                          |
-         |                          |                          |
-+--------+----------+       +--------+----------+       +--------+----------+
-|                   |       |                   |       |                   |
-|    Client App     |       |  Cloudflare Worker|       |  Durable Object   |
-|  (Svelte Frontend)|       |  (server.ts)      |       |  (BlazeDocument)  |
-|                   |       |                   |       |                   |
-+-------------------+       +-------------------+       +-------------------+
-```
 
 # Core Components
 
