@@ -1,7 +1,7 @@
 # blaze
 A simple realtime database for Cloudflare Workers.
 
-![Blaze Diagram](https://raw.githubusercontent.com/acoyfellow/blaze/refs/heads/main/public/diagram.png)
+![Blaze Diagram](https://github.com/acoyfellow/blaze/blob/main/public/diagram.jpg?raw=true)
 
 Roadmap:
   - [x] POC backend + frontend lib (state)
