@@ -1,0 +1,28 @@
+{
+  "name": "partyvite-svelte",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "deploy": "vite build && wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^0.0.8",
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "svelte": "^5.20.0",
+    "svelte-check": "^4.1.4",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "wrangler": "^3.109.2"
+  },
+  "dependencies": {
+    "partyserver": "^0.0.64",
+    "partysocket": "^1.0.3"
+  }
+}
