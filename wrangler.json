@@ -18,6 +18,15 @@
       }
     ]
   },
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTS",
+      "bucket_name": "blaze-documents"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
   "migrations": [
     {
       "tag": "v1",

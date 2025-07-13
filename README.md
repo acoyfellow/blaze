@@ -1,110 +1,212 @@
-# Blaze
-A simple realtime database for Cloudflare Workers.
+# Blaze Chatbot - RAG-Powered Document Chat
 
-![Blaze Diagram](https://github.com/acoyfellow/blaze/blob/main/public/diagram.jpg?raw=true)
+A modern end-to-end proof of concept for a document-powered chatbot built with Cloudflare Workers, TypeScript, and Svelte. Upload documents and chat with them using AI-powered Retrieval-Augmented Generation (RAG).
+
+## Features
+
+- 📄 **Document Upload**: Support for TXT, MD, PDF, DOC, DOCX, and HTML files
+- 🤖 **AI Chat**: Powered by Cloudflare AI with Llama 2 model
+- 🔍 **Smart Search**: Vector similarity search using BGE embeddings
+- 💬 **Real-time Chat**: WebSocket-based live chat interface
+- 📊 **Document Management**: View and manage uploaded documents
+- 🎨 **Modern UI**: Clean, responsive design with Tailwind CSS
+- 🌐 **Edge Computing**: Deployed on Cloudflare's global edge network
+
+## Architecture
+
+### Backend (Cloudflare Worker)
+- **Durable Objects**: Persistent storage for chat messages and documents
+- **R2 Storage**: Document file storage
+- **AI Integration**: Cloudflare AI for embeddings and text generation
+- **WebSocket Support**: Real-time bidirectional communication
+- **RAG Pipeline**: Automatic text chunking, embedding, and similarity search
+
+### Frontend (Svelte)
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first styling
+- **Real-time Updates**: WebSocket client for live chat
+- **File Upload**: Drag-and-drop document upload
+- **Responsive Design**: Mobile-friendly interface
+
+## Setup Instructions
+
+### Prerequisites
+- Node.js (v18 or later)
+- Cloudflare account
+- Wrangler CLI installed globally
+
+### 1. Clone and Install
+```bash
+git clone <repository-url>
+cd blaze-chatbot
+npm install
+```
+
+### 2. Cloudflare Setup
+```bash
+# Login to Cloudflare
+wrangler login
+
+# Create R2 bucket for documents
+wrangler r2 bucket create blaze-documents
+
+# Deploy the worker
+npm run deploy
+```
+
+### 3. Environment Configuration
+The project uses the following Cloudflare bindings:
+- `BLAZE`: Durable Object for chat state
+- `DOCUMENTS`: R2 bucket for document storage
+- `AI`: Cloudflare AI service
+
+These are configured in `wrangler.json` and will be automatically set up during deployment.
+
+### 4. Development
+```bash
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Usage
+
+### Uploading Documents
+1. Navigate to the **Documents** tab or use the sidebar upload area
+2. Drag and drop files or click to select
+3. Supported formats: TXT, MD, PDF, DOC, DOCX, HTML (max 10MB)
+4. Documents are automatically processed and embedded for search
+
+### Chatting
+1. Go to the **Chat** tab
+2. Type your questions in the message input
+3. The AI will search through your uploaded documents for relevant context
+4. Responses include source document references when applicable
+
+### Document Management
+- View all uploaded documents in the **Documents** tab
+- See processing status and upload timestamps
+- Documents are automatically indexed for search
+
+## Technical Implementation
+
+### RAG Pipeline
+1. **Document Processing**: Text extraction and chunking (500-character chunks)
+2. **Embedding Generation**: Using Cloudflare's BGE model for vector embeddings
+3. **Storage**: Documents and embeddings stored in Durable Objects and R2
+4. **Query Processing**: User queries are embedded and matched against document chunks
+5. **Response Generation**: Llama 2 model generates responses with document context
+
+### Key Components
+
+#### Worker (`worker/server.ts`)
+- Main entry point for the Cloudflare Worker
+- Handles HTTP requests and WebSocket connections
+- Implements the RAG pipeline with document processing and search
+- Manages Durable Object state and R2 storage
+
+#### Frontend (`src/`)
+- **App.svelte**: Main application component with tab navigation
+- **ChatService.ts**: WebSocket client for real-time communication
+- **ChatInterface.svelte**: Chat UI with message history
+- **DocumentUpload.svelte**: File upload component with drag-and-drop
+- **DocumentList.svelte**: Document management interface
+
+### API Endpoints
+- `POST /api/upload`: Upload documents
+- `GET /api/documents`: List uploaded documents
+- `GET /api/messages`: Get chat history
+- `WS /api/`: WebSocket connection for real-time chat
+
+## Configuration
+
+### Wrangler Configuration (`wrangler.json`)
+```json
+{
+  "name": "blaze",
+  "main": "./worker/server.ts",
+  "durable_objects": {
+    "bindings": [{ "name": "BLAZE", "class_name": "BlazeDocument" }]
+  },
+  "r2_buckets": [{ "binding": "DOCUMENTS", "bucket_name": "blaze-documents" }],
+  "ai": { "binding": "AI" }
+}
+```
+
+### Supported File Types
+- **Text**: `.txt`, `.md`
+- **Documents**: `.pdf`, `.doc`, `.docx`
+- **Web**: `.html`
+- **Size Limit**: 10MB per file
+
+## Deployment
+
+### Production Deployment
+```bash
+# Build and deploy
+npm run deploy
+
+# Or manually
+npm run build
+wrangler deploy
+```
+
+### Environment Variables
+The application uses Cloudflare bindings instead of environment variables:
+- Durable Objects for persistent storage
+- R2 for file storage
+- AI service for embeddings and text generation
+
+## Limitations & Considerations
+
+### Current Limitations
+- PDF text extraction is basic (may need improvement for complex PDFs)
+- No user authentication (single-user prototype)
+- Limited to 10MB file uploads
+- Basic error handling for AI service failures
+
+### Production Considerations
+- Add user authentication and authorization
+- Implement rate limiting for API endpoints
+- Add document deletion functionality
+- Improve error handling and logging
+- Add monitoring and analytics
+- Implement document versioning
+- Add support for more file formats
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For issues and questions:
+1. Check the GitHub Issues page
+2. Review the Cloudflare Workers documentation
+3. Check the Svelte documentation for frontend issues
+
+## Tech Stack
+
+- **Runtime**: Cloudflare Workers
+- **Backend**: TypeScript, Durable Objects, R2
+- **Frontend**: Svelte 5, TypeScript, Tailwind CSS
+- **AI**: Cloudflare AI (BGE embeddings, Llama 2)
+- **Build**: Vite, Wrangler
+- **Deployment**: Cloudflare Edge Network
 
 ---
 
-## Roadmap
-- [x] POC backend + frontend lib (state)
-- [x] Add example
-- [x] Open source it
-- [ ] Auth
-- [ ] Explore other DO features (D1, KV, Storage, Queues)
-- [ ] Add docs
-- [ ] Make a hosted version
-- [ ] Add tests
-
----
-
-## Overview
-Blaze is a **proof-of-concept (POC)** for a real-time, Firestore-like document store built on **Cloudflare Workers** and **Durable Objects**. It’s lightweight, scalable, and designed for experimentation.
-
----
-
-## Why Blaze?
-- **Firestore Alternative**: Firebase doesn’t work on Workers. Blaze fills the gap with Durable Objects.
-- **Real-Time Updates**: WebSocket support for instant updates.
-- **Scalability**: Built for high read/write workloads.
-- **Fun Experiment**: A playground for exploring Cloudflare’s capabilities.
-
----
-
-## Core Components
-### `server.ts`
-- **Purpose**: Backend logic for Workers and Durable Objects.
-- **Features**:
-  - Manages JSON document state.
-  - Handles WebSocket connections.
-  - Exposes HTTP endpoints for CRUD operations.
-
-### `blaze.ts`
-- **Purpose**: Client-side library.
-- **Features**:
-  - Firestore-like API (`collection`, `doc`, `get`, `onUpdate`, `update`).
-  - Real-time updates via WebSocket.
-  - Basic client-side querying (`.where()`).
-
-### `App.svelte`
-- **Purpose**: Demo UI.
-- **Features**:
-  - Real-time document updates.
-  - Clean, modern UI with Tailwind CSS.
-
----
-
-## Current State
-### What’s Working
-- Real-time updates via WebSocket.
-- CRUD operations (HTTP + WebSocket).
-- Firestore-like client API.
-- Demo UI.
-
-### What’s Not Working
-- Querying is client-side (not scalable).
-- No authentication.
-- Basic error handling.
-
----
-
-## Key Decisions
-1. **Firestore-like API**: Familiar and easy to use.
-2. **WebSocket for Real-Time Updates**: Instant updates for connected clients.
-3. **Durable Objects as Documents**: Scalable state management.
-4. **Tailwind CSS**: Clean, modern UI.
-
----
-
-## Next Steps
-### Short-Term
-- **Querying**: Add server-side filtering/indexing.
-- **Auth**: Integrate API keys or OAuth.
-- **Error Handling**: Improve robustness and logging.
-- **Testing**: Simulate high traffic for optimization.
-
-### Long-Term
-- **Advanced Querying**: Use D1 or KV for server-side queries.
-- **Persistence**: Backup state with R2 or D1.
-- **Nested Documents**: Support nested data structures.
-- **Transactions**: Add batch updates or transactions.
-- **Hosted Version**: Offer a managed, hosted solution.
-- **Documentation**: Write comprehensive docs for open-source adoption.
-
----
-
-## Code Structure
-### Backend
-- `server.ts`: Worker + Durable Object logic.
-- `blaze.ts`: Client-side library.
-
-### Frontend
-- `App.svelte`: Demo UI.
-
----
-
-## Why Blaze?
-Blaze is a **minimal, scalable, and real-time document store** for Cloudflare Workers. It’s perfect for developers who need Firestore-like functionality without the overhead of Firebase.
-
----
-
-*Note: This is a **proof-of-concept (POC)**. It’s not production-ready, but it’s a great starting point for experimentation.*
+Built with ❤️ using Cloudflare Workers and modern web technologies.

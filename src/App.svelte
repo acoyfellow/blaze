@@ -1,159 +1,138 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import Blaze from "./lib/blaze";
+  import ChatInterface from "./lib/ChatInterface.svelte";
+  import DocumentUpload from "./lib/DocumentUpload.svelte";
+  import DocumentList from "./lib/DocumentList.svelte";
+  import { ChatService } from "./lib/ChatService";
 
-  let docId = $state("mydoc");
-  let docData: Record<string, any> | null = $state(null);
-  let newData = $state({
-    name: "",
-    age: "",
-  });
-  let status = $state(""); // For user feedback
+  let activeTab = $state("chat");
+  let status = $state("");
   let isConnected = $state(false);
 
-  const blaze = new Blaze(window.location.origin);
-  let docRef: any; // Will be initialized when docId changes
+  const chatService = new ChatService(window.location.origin);
+  let messages = $state<any[]>([]);
+  let documents = $state<any[]>([]);
 
-  function initializeDoc() {
-    console.log(`Initializing document connection for ID: ${docId}`);
-    docRef = blaze.collection("docs").doc(docId);
-    fetchDoc();
-    listenForUpdates();
-  }
+  onMount(() => {
+    initializeConnection();
+  });
 
-  async function fetchDoc() {
-    try {
-      console.log(`Fetching document: ${docId}`);
-      const doc = await docRef.get();
-      docData = doc.data();
-      status = "Document loaded successfully";
-      console.log("Document data:", docData);
-    } catch (error) {
-      console.error("Error fetching document:", error);
-      status = "Error loading document";
-    }
-  }
-
-  function listenForUpdates() {
-    console.log(`Setting up real-time updates for document: ${docId}`);
-    docRef.onUpdate((snapshot) => {
-      console.log("Received document update:", snapshot.data());
-      docData = snapshot.data();
-      isConnected = true;
-      status = "Real-time connection active";
+  function initializeConnection() {
+    chatService.connect({
+      onConnected: () => {
+        isConnected = true;
+        status = "Connected to chat service";
+        chatService.getMessages();
+        chatService.getDocuments();
+      },
+      onDisconnected: () => {
+        isConnected = false;
+        status = "Disconnected from chat service";
+      },
+      onMessage: (message) => {
+        messages = [...messages, message];
+      },
+      onMessages: (allMessages) => {
+        messages = allMessages;
+      },
+      onDocuments: (allDocuments) => {
+        documents = allDocuments;
+      },
+      onDocumentUploaded: (document) => {
+        documents = [...documents, document];
+        status = `Document "${document.name}" uploaded successfully`;
+      },
+      onError: (error) => {
+        status = `Error: ${error}`;
+      }
     });
   }
 
-  async function updateDoc(e: Event) {
-    e.preventDefault();
-    try {
-      console.log(`Updating document ${docId} with data:`, newData);
-      await docRef.update(newData);
-      status = "Document updated successfully";
-      newData = { name: "", age: "" }; // Reset form
-    } catch (error) {
-      console.error("Error updating document:", error);
-      status = "Error updating document";
-    }
+  function sendMessage(content: string) {
+    chatService.sendMessage(content);
   }
 
-  // Initialize doc when docId changes
-  $effect(() => {
-    if (docId) {
-      initializeDoc();
-    }
-  });
-
-  onMount(() => {
-    initializeDoc();
-  });
+  function uploadDocument(file: File) {
+    status = "Uploading document...";
+    chatService.uploadDocument(file);
+  }
 </script>
 
-<div class="p-8 bg-gray-100 min-h-screen">
-  <h1 class="text-3xl font-bold mb-8">Blaze Demo</h1>
-
-  <!-- Document ID Input -->
-  <div class="mb-8 bg-white p-6 rounded shadow">
-    <h2 class="text-xl font-semibold mb-4">Document Settings</h2>
-    <div class="flex items-center gap-4">
-      <div class="flex-1">
-        <label for="docId" class="block text-sm font-medium text-gray-700"
-          >Document ID</label
-        >
-        <input
-          id="docId"
-          bind:value={docId}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-          placeholder="Enter document ID"
-        />
-      </div>
-      <div class="flex items-center">
-        <span
-          class="text-sm {isConnected ? 'text-green-600' : 'text-gray-500'}"
-        >
-          {isConnected ? "🟢 Connected" : "⚪ Disconnected"}
-        </span>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <h1 class="text-2xl font-bold text-gray-900">Blaze Chatbot</h1>
+          <span class="ml-4 text-sm {isConnected ? 'text-green-600' : 'text-red-600'}">
+            {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+          </span>
+        </div>
+        
+        <nav class="flex space-x-4">
+          <button 
+            class="px-4 py-2 rounded-md text-sm font-medium {activeTab === 'chat' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}"
+            onclick={() => activeTab = 'chat'}
+          >
+            Chat
+          </button>
+          <button 
+            class="px-4 py-2 rounded-md text-sm font-medium {activeTab === 'documents' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'}"
+            onclick={() => activeTab = 'documents'}
+          >
+            Documents
+          </button>
+        </nav>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Status Messages -->
+  <!-- Status Bar -->
   {#if status}
-    <div
-      class="mb-4 p-4 rounded {status.includes('Error')
-        ? 'bg-red-100 text-red-700'
-        : 'bg-green-100 text-green-700'}"
-    >
-      {status}
+    <div class="bg-blue-50 border-b border-blue-200 px-4 py-3">
+      <div class="max-w-7xl mx-auto">
+        <p class="text-sm text-blue-700">{status}</p>
+      </div>
     </div>
   {/if}
 
-  <!-- Display Document Data -->
-  <div class="mb-8">
-    <h2 class="text-xl font-semibold mb-4">Document Data</h2>
-    {#if docData}
-      <pre class="bg-white p-4 rounded shadow">{JSON.stringify(
-          docData,
-          null,
-          2,
-        )}</pre>
-    {:else}
-      <p class="text-gray-600">Loading...</p>
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {#if activeTab === 'chat'}
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Chat Interface -->
+        <div class="lg:col-span-3">
+          <ChatInterface 
+            {messages} 
+            {isConnected}
+            onSendMessage={sendMessage}
+          />
+        </div>
+        
+        <!-- Document Upload & List -->
+        <div class="lg:col-span-1 space-y-6">
+          <DocumentUpload 
+            {isConnected}
+            onUploadDocument={uploadDocument}
+          />
+          
+          <DocumentList {documents} />
+        </div>
+      </div>
+    {:else if activeTab === 'documents'}
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1">
+          <DocumentUpload 
+            {isConnected}
+            onUploadDocument={uploadDocument}
+          />
+        </div>
+        
+        <div class="lg:col-span-2">
+          <DocumentList {documents} detailed={true} />
+        </div>
+      </div>
     {/if}
-  </div>
-
-  <!-- Update Document Form -->
-  <div class="bg-white p-6 rounded shadow">
-    <h2 class="text-xl font-semibold mb-4">Update Document</h2>
-    <form onsubmit={updateDoc} class="space-y-4">
-      <div>
-        <label for="name" class="block text-sm font-medium text-gray-700"
-          >Name</label
-        >
-        <input
-          id="name"
-          bind:value={newData.name}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-          placeholder="Enter name"
-        />
-      </div>
-      <div>
-        <label for="age" class="block text-sm font-medium text-gray-700"
-          >Age</label
-        >
-        <input
-          id="age"
-          bind:value={newData.age}
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-          placeholder="Enter age"
-        />
-      </div>
-      <button
-        type="submit"
-        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-      >
-        Update Document
-      </button>
-    </form>
-  </div>
+  </main>
 </div>
