@@ -8,14 +8,16 @@
     name: "",
     age: "",
   });
-  let status = $state(""); // For user feedback
+  let status = $state("");
   let isConnected = $state(false);
 
-  const blaze = new Blaze(window.location.origin);
-  let docRef: any; // Will be initialized when docId changes
+  // Provide token function (replace with Better Auth token in real app)
+  const blaze = new Blaze(window.location.origin, {
+    token: async () => localStorage.getItem('demo_token') || '',
+  });
+  let docRef: any;
 
   function initializeDoc() {
-    console.log(`Initializing document connection for ID: ${docId}`);
     docRef = blaze.collection("docs").doc(docId);
     fetchDoc();
     listenForUpdates();
@@ -23,21 +25,16 @@
 
   async function fetchDoc() {
     try {
-      console.log(`Fetching document: ${docId}`);
       const doc = await docRef.get();
       docData = doc.data();
       status = "Document loaded successfully";
-      console.log("Document data:", docData);
     } catch (error) {
-      console.error("Error fetching document:", error);
       status = "Error loading document";
     }
   }
 
   function listenForUpdates() {
-    console.log(`Setting up real-time updates for document: ${docId}`);
     docRef.onUpdate((snapshot) => {
-      console.log("Received document update:", snapshot.data());
       docData = snapshot.data();
       isConnected = true;
       status = "Real-time connection active";
@@ -47,17 +44,14 @@
   async function updateDoc(e: Event) {
     e.preventDefault();
     try {
-      console.log(`Updating document ${docId} with data:`, newData);
       await docRef.update(newData);
       status = "Document updated successfully";
-      newData = { name: "", age: "" }; // Reset form
+      newData = { name: "", age: "" };
     } catch (error) {
-      console.error("Error updating document:", error);
       status = "Error updating document";
     }
   }
 
-  // Initialize doc when docId changes
   $effect(() => {
     if (docId) {
       initializeDoc();
@@ -71,6 +65,9 @@
 
 <div class="p-8 bg-gray-100 min-h-screen">
   <h1 class="text-3xl font-bold mb-8">Blaze Demo</h1>
+  <div class="mb-4 text-sm text-gray-600">
+    Set a demo token in localStorage key <code>demo_token</code> to call authenticated endpoints.
+  </div>
 
   <!-- Document ID Input -->
   <div class="mb-8 bg-white p-6 rounded shadow">
@@ -97,7 +94,6 @@
     </div>
   </div>
 
-  <!-- Status Messages -->
   {#if status}
     <div
       class="mb-4 p-4 rounded {status.includes('Error')

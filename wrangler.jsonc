@@ -1,0 +1,24 @@
+// wrangler.jsonc
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "blaze",
+  "main": "./worker/server.ts",
+  "compatibility_date": "2025-02-04",
+  "assets": { "directory": "./public" },
+  "durable_objects": {
+    "bindings": [{ "name": "BLAZE", "class_name": "BlazeDocument" }]
+  },
+  "migrations": [
+    { "tag": "v1", "new_classes": ["BlazeDocument"] }
+  ],
+  "observability": { "enabled": true },
+  "vars": {
+    // Comma-separated origins for CORS; leave empty for *
+    "ALLOWED_ORIGINS": "",
+    // Better Auth integration (choose JWKS or HMAC)
+    // "BETTER_AUTH_JWKS_URL": "https://your-auth.example.com/.well-known/jwks.json",
+    // "BETTER_AUTH_ISSUER": "https://your-auth.example.com",
+    // "BETTER_AUTH_AUDIENCE": "your-app-aud",
+    // "BETTER_AUTH_HMAC_SECRET": "set-as-secret-in-prod"
+  }
+}

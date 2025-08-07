@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "vite build && wrangler deploy",
+    "build:client": "npm --prefix packages/client run build"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^0.0.8",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.7",
-    "tailwindcss": "^4.0.7"
+    "tailwindcss": "^4.0.7",
+    "jose": "^5.9.6"
   }
 }
